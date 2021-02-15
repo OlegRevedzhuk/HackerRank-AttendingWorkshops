@@ -2,10 +2,30 @@
 
 using namespace std;
 
-//Define the structs Workshops and Available_Workshops.
+struct Workshops {
+	int start;
+	int duration;
+	int end;
+};
 
+struct Available_Workshops {
+	static int n;
+	Workshops* workshops = new Workshops[n];
+};
 //Implement the functions initialize and CalculateMaxWorkshops
+Available_Workshops* initialize(int* startTime, int* duration, int n) {
+	Available_Workshops * current = new Available_Workshops[n];
 
+	for (int i{ 0 }; i < n; ++i) {
+		current->workshops[i].start = startTime[i];
+		current->workshops[i].duration = duration[i];
+		current->workshops[i].end = startTime[i] + duration[i];
+	}
+
+	//next need to sort
+
+	return current;
+}
 
 int main(int argc, char *argv[]) {
 	int n; // number of workshops
