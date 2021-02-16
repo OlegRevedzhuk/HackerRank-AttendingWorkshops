@@ -28,7 +28,7 @@ Available_Workshops * initialize(int* startTime, int* duration, int n) {
 	}
 	//got a hint from discussion to try and sort by end date.
 	std::sort(current->workshops.begin(), current->workshops.end(), [](const auto& a, const auto& b) {
-		return a.end < b.end; });
+		return b.end < a.end; });
 
 	return current;
 }
@@ -70,7 +70,7 @@ bool isValid(const Available_Workshops* currentWorkshops, const std::vector<Solu
 }
 */
 
-size_t CalculateMaxWorkshops(const Available_Workshops* currentWorkshops) {
+size_t CalculateMaxWorkshops(Available_Workshops* currentWorkshops) {
 	size_t lastEnd{ static_cast<size_t>(std::max_element(currentWorkshops->workshops.begin(), currentWorkshops->workshops.end(), [](const auto& a, const auto& b) {
 		return a.end < b.end; })->end) };
 	size_t currentTime{ 0 };
@@ -78,11 +78,14 @@ size_t CalculateMaxWorkshops(const Available_Workshops* currentWorkshops) {
 
 	for (size_t i{ 1 }; i <= lastEnd; ++i) {
 		for (int j{ 1 }; j <= i - currentTime; ++j) {
-			const auto found{ std::find_if(currentWorkshops->workshops.begin(), currentWorkshops->workshops.end(), [=](const auto& a) {
+			const auto found{ std::find_if(currentWorkshops->workshops.rbegin(), currentWorkshops->workshops.rend(), [=](const auto& a) {
 				return a.end == i && a.duration == j; }) };
-			if (found != currentWorkshops->workshops.end()) {
+			if (found != currentWorkshops->workshops.rend()) {
 				currentTime = found->end;
 				++maxNumShops;
+				while (currentWorkshops->workshops.back().end <= i) {
+					currentWorkshops->workshops.pop_back();
+				}
 				break;
 			}
 		}
