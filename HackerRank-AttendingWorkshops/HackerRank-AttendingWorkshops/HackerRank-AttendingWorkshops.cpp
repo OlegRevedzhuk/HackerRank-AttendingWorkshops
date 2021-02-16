@@ -1,6 +1,10 @@
 //#include <bits/stdc++.h>
+#include <iostream>
 
 using namespace std;
+
+#include <algorithm>
+#include <vector>
 
 struct Workshops {
 	int start;
@@ -9,23 +13,27 @@ struct Workshops {
 };
 
 struct Available_Workshops {
-	static int n;
-	Workshops* workshops = new Workshops[n];
+	int n;
+	std::vector<Workshops> workshops;
 };
 //Implement the functions initialize and CalculateMaxWorkshops
-Available_Workshops* initialize(int* startTime, int* duration, int n) {
-	Available_Workshops * current = new Available_Workshops[n];
+Available_Workshops * initialize(int* startTime, int* duration, int n) {
+	Available_Workshops * current = new Available_Workshops;
+	current->n = n;
+	current->workshops.reserve(n);
 
 	for (int i{ 0 }; i < n; ++i) {
-		current->workshops[i].start = startTime[i];
-		current->workshops[i].duration = duration[i];
-		current->workshops[i].end = startTime[i] + duration[i];
+		current->workshops.push_back({ startTime[i], duration[i], startTime[i] + duration[i]});
 	}
-
-	//next need to sort
+	//sorting by start date will group all the shops that overlap near each other
+	//and allow for faster searching later on
+	std::sort(current->workshops.begin(), current->workshops.end(), [](const auto& a, const auto& b){
+																			return a.start < b.start; });
 
 	return current;
 }
+
+//next is the CalculateMaxWorkshops function
 
 int main(int argc, char *argv[]) {
 	int n; // number of workshops
@@ -43,6 +51,14 @@ int main(int argc, char *argv[]) {
 
 	Available_Workshops * ptr;
 	ptr = initialize(start_time, duration, n);
-	cout << CalculateMaxWorkshops(ptr) << endl;
+	//testing sort
+	for (const auto& a : ptr->workshops)
+		std::cout << a.start << ' ';
+	std::cout << '\n';
+	//cout << CalculateMaxWorkshops(ptr) << endl;
+	
+	//not in original problem, but dynamically allocated should be deleted
+	//delete ptr; delete start_time; delete duration;
+
 	return 0;
 }
