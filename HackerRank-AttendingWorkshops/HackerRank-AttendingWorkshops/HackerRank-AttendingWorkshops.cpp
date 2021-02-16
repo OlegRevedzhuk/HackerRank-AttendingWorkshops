@@ -4,6 +4,7 @@
 using namespace std;
 
 #include <algorithm>
+#include <cmath>
 #include <vector>
 
 struct Workshops {
@@ -33,7 +34,50 @@ Available_Workshops * initialize(int* startTime, int* duration, int n) {
 	return current;
 }
 
-//next is the CalculateMaxWorkshops function
+struct Solution {
+	int classesAttended{};
+	bool isValidSchedule{};
+};
+
+int calculateClassesAttended(size_t bitFlagsForSolution) {
+	unsigned int count = 0;
+	while (bitFlagsForSolution) {
+		count += bitFlagsForSolution & 1;
+		bitFlagsForSolution >>= 1;
+	}
+	return count;
+}
+
+bool isValid(const Available_Workshops* currentWorkshops, size_t bitFlagsForSolution) {
+	int currentTime{ 0 };
+	for (int i{ 0 }; i < currentWorkshops->n; ++i) {
+		if (!(bitFlagsForSolution & 1))
+			continue;
+
+		if (currentWorkshops->workshops[i].start < currentTime)
+			return false;
+		else {
+			currentTime = currentWorkshops->workshops[i].end;
+			bitFlagsForSolution >>= 1;
+		}
+	}
+	return true;
+}
+
+int CalculateMaxWorkshops(const Available_Workshops* currentWorkshops) {
+	size_t numOfSolutions{ static_cast<size_t>(pow(2, currentWorkshops->n)) };
+	std::vector<Solution> solution(numOfSolutions);
+
+	for (size_t i{ 1 }; i < numOfSolutions; ++i) {
+		if (isValid(currentWorkshops, i)) {
+			solution[i].isValidSchedule = true;
+			solution[i].classesAttended = calculateClassesAttended(i);
+		}
+	}
+
+	return max_element(solution.begin(), solution.end(), [](const auto& a, const auto&b) {
+														return a.classesAttended < b.classesAttended; })->classesAttended;
+}
 
 int main(int argc, char *argv[]) {
 	int n; // number of workshops
@@ -51,11 +95,13 @@ int main(int argc, char *argv[]) {
 
 	Available_Workshops * ptr;
 	ptr = initialize(start_time, duration, n);
-	//testing sort
+	/* testing sort
+
 	for (const auto& a : ptr->workshops)
 		std::cout << a.start << ' ';
 	std::cout << '\n';
-	//cout << CalculateMaxWorkshops(ptr) << endl;
+	*/
+	cout << CalculateMaxWorkshops(ptr) << endl;
 	
 	//not in original problem, but dynamically allocated should be deleted
 	//delete ptr; delete start_time; delete duration;
