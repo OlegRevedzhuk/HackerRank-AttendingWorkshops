@@ -35,24 +35,22 @@ Available_Workshops * initialize(int* startTime, int* duration, int n) {
 
 size_t CalculateMaxWorkshops(Available_Workshops* currentWorkshops) {
 	auto& shops{ currentWorkshops->workshops };
-	size_t lastEnd{ static_cast<size_t>(std::max_element(currentWorkshops->workshops.begin(), currentWorkshops->workshops.end(), [](const auto& a, const auto& b) {
+	size_t lastEnd{ static_cast<size_t>(std::max_element(shops.begin(), shops.end(), [](const auto& a, const auto& b) {
 		return a.end < b.end; })->end) };
-	size_t currentTime{ 0 };
 	size_t maxNumShops{ 0 };
 
 	for (size_t i{ 1 }; i <= lastEnd; ++i) {
-		for (int j{ 1 }; j <= i - currentTime; ++j) {
-			const auto found{ std::find_if(currentWorkshops->workshops.rbegin(), currentWorkshops->workshops.rend(), [=](const auto& a) {
-				return a.end == i && a.duration == j; }) };
-			if (found != currentWorkshops->workshops.rend()) {
-				currentTime = found->end;
-				++maxNumShops;
-				break;
+		const auto found{ std::find_if(shops.rbegin(), shops.rend(), [=](const auto& a) {
+				return a.end == i; }) };
+		if (found != shops.rend()) {
+			++maxNumShops;
+			while (true) {
+				const auto located{ std::find_if(shops.begin(), shops.end(), [=](const auto& a) {
+				return a.start < i; }) };
+				if (located != shops.end())
+					shops.erase(located);
+				else break;
 			}
-		}
-		while (currentWorkshops->workshops.back().end <= i) {
-			currentWorkshops->workshops.pop_back();
-			if (currentWorkshops->workshops.size() == 0) break;
 		}
 	}
 	return maxNumShops;
