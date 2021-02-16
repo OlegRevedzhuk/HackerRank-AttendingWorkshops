@@ -24,21 +24,17 @@ Available_Workshops * initialize(int* startTime, int* duration, int n) {
 	current->workshops.reserve(n);
 
 	for (int i{ 0 }; i < n; ++i) {
-		current->workshops.push_back({ startTime[i], duration[i], startTime[i] + duration[i]});
+		current->workshops.push_back({ startTime[i], duration[i], startTime[i] + duration[i] });
 	}
 	//sorting by start date will group all the shops that overlap near each other
 	//and allow for faster searching later on
-	std::sort(current->workshops.begin(), current->workshops.end(), [](const auto& a, const auto& b){
-																			return a.start < b.start; });
+	std::sort(current->workshops.begin(), current->workshops.end(), [](const auto& a, const auto& b) {
+		return a.start < b.start; });
 
 	return current;
 }
 
-struct Solution {
-	int classesAttended{};
-	bool isValidSchedule{};
-};
-
+/*
 int calculateClassesAttended(size_t bitFlagsForSolution) {
 	unsigned int count = 0;
 	while (bitFlagsForSolution) {
@@ -47,38 +43,66 @@ int calculateClassesAttended(size_t bitFlagsForSolution) {
 	}
 	return count;
 }
+*/
 
-bool isValid(const Available_Workshops* currentWorkshops, size_t bitFlagsForSolution) {
+struct Solution {
+	bool isSecondBranching{};
+	int currentTime{};
+	int classesAttended{};
+	bool hasBeenAttended{};
+	//bool isValidSchedule{};
+	//size_t* bitFlagTracking{};
+};
+
+bool isValid(const Available_Workshops* currentWorkshops, const std::vector<Solution> &solution) {
 	int currentTime{ 0 };
-	for (int i{ 0 }; i < currentWorkshops->n; ++i) {
-		if (!(bitFlagsForSolution & 1)) {
-			bitFlagsForSolution >>= 1;
+	for (size_t i{ 1 }; i < solution.size(); ++i) {
+		if (!solution[i].hasBeenAttended)
 			continue;
-		}
-
-		if (currentWorkshops->workshops[i].start < currentTime)
+		else if (currentWorkshops->workshops[i - 1].start < currentTime) {
 			return false;
+		}
 		else {
-			currentTime = currentWorkshops->workshops[i].end;
-			bitFlagsForSolution >>= 1;
+			currentTime = currentWorkshops->workshops[i - 1].end;
 		}
 	}
 	return true;
 }
 
 int CalculateMaxWorkshops(const Available_Workshops* currentWorkshops) {
-	size_t numOfSolutions{ static_cast<size_t>(pow(2, currentWorkshops->n)) };
-	std::vector<Solution> solution(numOfSolutions);
+	size_t numOfBranches{ static_cast<size_t>(currentWorkshops->n) };
+	std::vector<Solution> solution{ {{false, -1, 0, false}, {false, 0, 0, false} } };  //going to use solutions[0] as an escape value since time = -1 is out of range.
+	solution.reserve(numOfBranches + 1);
 
-	for (size_t i{ 1 }; i < numOfSolutions; ++i) {
-		if (isValid(currentWorkshops, i)) {
-			solution[i].isValidSchedule = true;
-			solution[i].classesAttended = calculateClassesAttended(i);
+	size_t maxNumberOfShops{};
+	while (solution.back().currentTime != -1) {
+		if (solution.size() == numOfBranches + 1) {
+			++solution.back().classesAttended;
+
+			if (isValid(currentWorkshops, solution) && solution.back().classesAttended > maxNumberOfShops)
+				maxNumberOfShops = solution.back().classesAttended;
+			else if (solution.back().classesAttended - 1 > maxNumberOfShops)
+				maxNumberOfShops = solution.back().classesAttended - 1;
+
+			solution.pop_back();
+			continue;
+		}
+		else if (!solution.back().isSecondBranching) {
+			solution.back().isSecondBranching = true;
+			solution.push_back({ false, solution.back().currentTime, solution.back().classesAttended, false});
+			continue;
+		}
+		else if (!isValid(currentWorkshops, solution) || solution.back().hasBeenAttended) {
+			solution.pop_back();
+			continue;
+		}
+		else {
+			solution.back().hasBeenAttended = true;
+			//-2 because size is +1 from indexes and sol[0] is garbage.
+			solution.push_back({ false, currentWorkshops->workshops[solution.size() - 2].end, solution.back().classesAttended + 1, false });
 		}
 	}
-
-	return max_element(solution.begin(), solution.end(), [](const auto& a, const auto&b) {
-														return a.classesAttended < b.classesAttended; })->classesAttended;
+	return maxNumberOfShops;
 }
 
 int main(int argc, char *argv[]) {
@@ -104,7 +128,7 @@ int main(int argc, char *argv[]) {
 	std::cout << '\n';
 	*/
 	cout << CalculateMaxWorkshops(ptr) << endl;
-	
+
 	//not in original problem, but dynamically allocated should be deleted
 	//delete ptr; delete start_time; delete duration;
 
