@@ -78,6 +78,7 @@ int CalculateMaxWorkshops(const Available_Workshops* currentWorkshops) {
 	while (solution.back().currentTime != -1) {
 		if (solution.size() == numOfBranches + 1) {
 			++solution.back().classesAttended;
+			solution.back().hasBeenAttended = true;
 
 			if (isValid(currentWorkshops, solution) && solution.back().classesAttended > maxNumberOfShops)
 				maxNumberOfShops = solution.back().classesAttended;
@@ -92,14 +93,21 @@ int CalculateMaxWorkshops(const Available_Workshops* currentWorkshops) {
 			solution.push_back({ false, solution.back().currentTime, solution.back().classesAttended, false});
 			continue;
 		}
-		else if (!isValid(currentWorkshops, solution) || solution.back().hasBeenAttended) {
-			solution.pop_back();
-			continue;
-		}
-		else {
+		else if (!solution.back().hasBeenAttended) {
 			solution.back().hasBeenAttended = true;
-			//-2 because size is +1 from indexes and sol[0] is garbage.
-			solution.push_back({ false, currentWorkshops->workshops[solution.size() - 2].end, solution.back().classesAttended + 1, false });
+			if (!isValid(currentWorkshops, solution)) {
+				solution.pop_back();
+				continue;
+			}
+			else {
+				//-2 because size is +1 from indexes and sol[0] is garbage.
+				solution.push_back({ false, currentWorkshops->workshops[solution.size() - 2].end, solution.back().classesAttended + 1, false });
+				continue;
+			}
+		}
+		else
+		{
+			solution.pop_back();
 		}
 	}
 	return maxNumberOfShops;
