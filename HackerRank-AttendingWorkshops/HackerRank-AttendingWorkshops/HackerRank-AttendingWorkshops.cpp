@@ -38,19 +38,14 @@ size_t CalculateMaxWorkshops(Available_Workshops* currentWorkshops) {
 	size_t lastEnd{ static_cast<size_t>(std::max_element(shops.begin(), shops.end(), [](const auto& a, const auto& b) {
 		return a.end < b.end; })->end) };
 	size_t maxNumShops{ 0 };
+	size_t currentTime{ 0 };
 
 	for (size_t i{ 1 }; i <= lastEnd; ++i) {
 		const auto found{ std::find_if(shops.rbegin(), shops.rend(), [=](const auto& a) {
-				return a.end == i; }) };
+				return a.end == i && a.start >= currentTime; }) };
 		if (found != shops.rend()) {
 			++maxNumShops;
-			while (true) {
-				const auto located{ std::find_if(shops.begin(), shops.end(), [=](const auto& a) {
-				return a.start < i; }) };
-				if (located != shops.end())
-					shops.erase(located);
-				else break;
-			}
+			currentTime = found->end;
 		}
 	}
 	return maxNumShops;
