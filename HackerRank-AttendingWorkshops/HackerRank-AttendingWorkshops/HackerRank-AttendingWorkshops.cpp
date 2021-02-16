@@ -33,44 +33,8 @@ Available_Workshops * initialize(int* startTime, int* duration, int n) {
 	return current;
 }
 
-/*
-int calculateClassesAttended(size_t bitFlagsForSolution) {
-	unsigned int count = 0;
-	while (bitFlagsForSolution) {
-		count += bitFlagsForSolution & 1;
-		bitFlagsForSolution >>= 1;
-	}
-	return count;
-}
-*/
-/*
-struct Solution {
-	bool isSecondBranching{};
-	int currentTime{};
-	int classesAttended{};
-	bool hasBeenAttended{};
-	//bool isValidSchedule{};
-	//size_t* bitFlagTracking{};
-};
-*/
-/*
-bool isValid(const Available_Workshops* currentWorkshops, const std::vector<Solution> &solution) {
-	int currentTime{ 0 };
-	for (size_t i{ 1 }; i < solution.size(); ++i) {
-		if (!solution[i].hasBeenAttended)
-			continue;
-		else if (currentWorkshops->workshops[i - 1].start < currentTime) {
-			return false;
-		}
-		else {
-			currentTime = currentWorkshops->workshops[i - 1].end;
-		}
-	}
-	return true;
-}
-*/
-
 size_t CalculateMaxWorkshops(Available_Workshops* currentWorkshops) {
+	auto& shops{ currentWorkshops->workshops };
 	size_t lastEnd{ static_cast<size_t>(std::max_element(currentWorkshops->workshops.begin(), currentWorkshops->workshops.end(), [](const auto& a, const auto& b) {
 		return a.end < b.end; })->end) };
 	size_t currentTime{ 0 };
@@ -83,11 +47,12 @@ size_t CalculateMaxWorkshops(Available_Workshops* currentWorkshops) {
 			if (found != currentWorkshops->workshops.rend()) {
 				currentTime = found->end;
 				++maxNumShops;
-				while (currentWorkshops->workshops.back().end <= i) {
-					currentWorkshops->workshops.pop_back();
-				}
 				break;
 			}
+		}
+		while (currentWorkshops->workshops.back().end <= i) {
+			currentWorkshops->workshops.pop_back();
+			if (currentWorkshops->workshops.size() == 0) break;
 		}
 	}
 	return maxNumShops;
