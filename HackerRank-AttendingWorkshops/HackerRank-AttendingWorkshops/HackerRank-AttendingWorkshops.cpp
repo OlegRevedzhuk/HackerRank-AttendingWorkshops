@@ -51,8 +51,10 @@ int calculateClassesAttended(size_t bitFlagsForSolution) {
 bool isValid(const Available_Workshops* currentWorkshops, size_t bitFlagsForSolution) {
 	int currentTime{ 0 };
 	for (int i{ 0 }; i < currentWorkshops->n; ++i) {
-		if (!(bitFlagsForSolution & 1))
+		if (!(bitFlagsForSolution & 1)) {
+			bitFlagsForSolution >>= 1;
 			continue;
+		}
 
 		if (currentWorkshops->workshops[i].start < currentTime)
 			return false;
