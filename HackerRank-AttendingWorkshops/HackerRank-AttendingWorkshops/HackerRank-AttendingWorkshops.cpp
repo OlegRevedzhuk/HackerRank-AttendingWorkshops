@@ -26,10 +26,9 @@ Available_Workshops * initialize(int* startTime, int* duration, int n) {
 	for (int i{ 0 }; i < n; ++i) {
 		current->workshops.push_back({ startTime[i], duration[i], startTime[i] + duration[i] });
 	}
-	//sorting by start date will group all the shops that overlap near each other
-	//and allow for faster searching later on
+	//got a hint from discussion to try and sort by end date.
 	std::sort(current->workshops.begin(), current->workshops.end(), [](const auto& a, const auto& b) {
-		return a.start < b.start; });
+		return a.end < b.end; });
 
 	return current;
 }
@@ -44,7 +43,7 @@ int calculateClassesAttended(size_t bitFlagsForSolution) {
 	return count;
 }
 */
-
+/*
 struct Solution {
 	bool isSecondBranching{};
 	int currentTime{};
@@ -53,7 +52,8 @@ struct Solution {
 	//bool isValidSchedule{};
 	//size_t* bitFlagTracking{};
 };
-
+*/
+/*
 bool isValid(const Available_Workshops* currentWorkshops, const std::vector<Solution> &solution) {
 	int currentTime{ 0 };
 	for (size_t i{ 1 }; i < solution.size(); ++i) {
@@ -68,49 +68,26 @@ bool isValid(const Available_Workshops* currentWorkshops, const std::vector<Solu
 	}
 	return true;
 }
+*/
 
-int CalculateMaxWorkshops(const Available_Workshops* currentWorkshops) {
-	size_t numOfBranches{ static_cast<size_t>(currentWorkshops->n) };
-	std::vector<Solution> solution{ {{false, -1, 0, false}, {false, 0, 0, false} } };  //going to use solutions[0] as an escape value since time = -1 is out of range.
-	solution.reserve(numOfBranches + 1);
+size_t CalculateMaxWorkshops(const Available_Workshops* currentWorkshops) {
+	size_t lastEnd{ static_cast<size_t>(std::max_element(currentWorkshops->workshops.begin(), currentWorkshops->workshops.end(), [](const auto& a, const auto& b) {
+		return a.end < b.end; })->end) };
+	size_t currentTime{ 0 };
+	size_t maxNumShops{ 0 };
 
-	size_t maxNumberOfShops{};
-	while (solution.back().currentTime != -1) {
-		if (solution.size() == numOfBranches + 1) {
-			++solution.back().classesAttended;
-			solution.back().hasBeenAttended = true;
-
-			if (isValid(currentWorkshops, solution) && solution.back().classesAttended > maxNumberOfShops)
-				maxNumberOfShops = solution.back().classesAttended;
-			else if (solution.back().classesAttended - 1 > maxNumberOfShops)
-				maxNumberOfShops = solution.back().classesAttended - 1;
-
-			solution.pop_back();
-			continue;
-		}
-		else if (!solution.back().isSecondBranching) {
-			solution.back().isSecondBranching = true;
-			solution.push_back({ false, solution.back().currentTime, solution.back().classesAttended, false});
-			continue;
-		}
-		else if (!solution.back().hasBeenAttended) {
-			solution.back().hasBeenAttended = true;
-			if (!isValid(currentWorkshops, solution)) {
-				solution.pop_back();
-				continue;
+	for (size_t i{ 1 }; i <= lastEnd; ++i) {
+		for (int j{ 1 }; j <= i - currentTime; ++j) {
+			const auto found{ std::find_if(currentWorkshops->workshops.begin(), currentWorkshops->workshops.end(), [=](const auto& a) {
+				return a.end == i && a.duration == j; }) };
+			if (found != currentWorkshops->workshops.end()) {
+				currentTime = found->end;
+				++maxNumShops;
+				break;
 			}
-			else {
-				//-2 because size is +1 from indexes and sol[0] is garbage.
-				solution.push_back({ false, currentWorkshops->workshops[solution.size() - 2].end, solution.back().classesAttended + 1, false });
-				continue;
-			}
-		}
-		else
-		{
-			solution.pop_back();
 		}
 	}
-	return maxNumberOfShops;
+	return maxNumShops;
 }
 
 int main(int argc, char *argv[]) {
