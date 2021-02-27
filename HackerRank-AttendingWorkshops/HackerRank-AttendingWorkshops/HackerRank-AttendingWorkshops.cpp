@@ -67,16 +67,11 @@ int main(int argc, char *argv[]) {
 
 	Available_Workshops * ptr;
 	ptr = initialize(start_time, duration, n);
-	/* testing sort
-
-	for (const auto& a : ptr->workshops)
-		std::cout << a.start << ' ';
-	std::cout << '\n';
-	*/
+	
 	cout << CalculateMaxWorkshops(ptr) << endl;
 
 	//not in original problem, but dynamically allocated should be deleted
-	//delete ptr; delete start_time; delete duration;
+	delete ptr; delete start_time; delete duration;
 
 	return 0;
 }
